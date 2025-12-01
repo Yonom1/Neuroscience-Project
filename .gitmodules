@@ -1,0 +1,3 @@
+[submodule "object-recognition"]
+	path = object-recognition
+	url = https://github.com/rgeirhos/object-recognition.git
