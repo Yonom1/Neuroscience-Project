@@ -124,7 +124,7 @@ def run_evaluation(model, dataloaders, is_vlm, model_name):
             images, labels, _ = load_images_from_folder(folder_path)
             
             # 使用较小的 Batch Size 进行推理
-            eval_batch_size = 2 # 如果是 Qwen/LLaVA 显存不够，请改为 1 或 2
+            eval_batch_size = 100 # 如果是 Qwen/LLaVA 显存不够，请改为 1 或 2
             
             # 进度条
             for i in tqdm(range(0, len(images), eval_batch_size), desc="VLM Inference", leave=False):
@@ -199,8 +199,8 @@ if __name__ == '__main__':
     models_to_test = [
         # 'resnet18', 
         # 'vit_base', 
-        # 'blip', 
-        # 'llava', 
+        'blip', 
+        'llava', 
         'qwen3-vl'
     ]
 
