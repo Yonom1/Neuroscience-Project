@@ -124,7 +124,7 @@ def run_evaluation(model, dataloaders, is_vlm, model_name):
             images, labels, _ = load_images_from_folder(folder_path)
             
             # 使用较小的 Batch Size 进行推理
-            eval_batch_size = 2 # 如果是 Qwen/LLaVA 显存不够，请改为 1 或 2
+            eval_batch_size = 100 # 如果是 Qwen/LLaVA 显存不够，请改为 1 或 2
             
             # 进度条
             for i in tqdm(range(0, len(images), eval_batch_size), desc="VLM Inference", leave=False):
@@ -192,16 +192,16 @@ if __name__ == '__main__':
     datasets_list = ['dataset'] 
     for i in range(1, 6):
         datasets_list.append(f'dataset_variants/contrast_level_{i}')
-    for i in range(1, 6):
+    for i in range(1, 7):
         datasets_list.append(f'dataset_variants/noise_level_{i}')
 
     # 定义模型
     models_to_test = [
         # 'resnet18', 
-        # 'vit_base', 
+        'vit_base', 
         # 'blip', 
         # 'llava', 
-        'qwen3-vl'
+        # 'qwen3-vl'
     ]
 
     log_file = "experiment_results_optimized.csv"

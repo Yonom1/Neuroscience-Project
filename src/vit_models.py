@@ -108,45 +108,54 @@ class LLaVAClassifier(nn.Module):
     
     def predict_logits(self, images):
         """
-        修正后的逻辑：进行 VQA (视觉问答)，获取回答 'Yes' 的 logits 值。
+        使用 Multiple Choice (A/B/C...) 策略获取 Logits
         """
         self.model.eval()
         all_logits = []
         
-        # 预先获取 "Yes" 和 "yes" 的 token ID (LLaMA tokenizer 区分大小写和空格)
-        # 通常 token 是 "Yes" 或 "yes" (前面可能带空格)
+        # 1. 准备选项标签 (A, B, C...)
+        # 假设类别不超过26个，生成 ['A', 'B', ...]
+        options = [chr(ord('A') + i) for i in range(len(self.class_names))]
+        
+        # 2. 获取选项对应的 Token IDs
         tokenizer = self.processor.tokenizer
-        # 获取 "yes" 或 "Yes" 的 id，根据实际模型偏好，这里取 "Yes" 作为正样本指代
-        # 注意：add_special_tokens=False 很重要
-        yes_token_id = tokenizer.encode("Yes", add_special_tokens=False)[-1]
+        option_token_ids = []
+        for opt in options:
+            # 注意：LLaMA tokenizer 对 "A" 和 " A" (带前导空格) 编码可能不同
+            # 在 ASSISTANT: 后面通常接空格，所以取带空格的版本或直接取最后一个 token
+            # 这里使用稍微鲁棒的写法：编码 " A" 取最后一个 token
+            # 如果不确定，可以打印 print(tokenizer.encode(" A")) 调试
+            token_id = tokenizer.encode(opt, add_special_tokens=False)[-1]
+            option_token_ids.append(token_id)
+            
+        # 3. 构建多选 Prompt 字符串
+        # 格式: (A) Persian (B) Siamese
+        options_str = " ".join([f"({opt}) {name}" for opt, name in zip(options, self.class_names)])
+        
+        # LLaVA v1.5 标准模版
+        prompt = f"USER: <image>\nSelect the correct category for this image from the following options: {options_str}.\nAnswer with the option letter only.\nASSISTANT:"
         
         with torch.no_grad():
             for img in images:
-                cls_scores = []
-                for cls in self.class_names:
-                    # LLaVA v1.5 标准 Prompt 模版效果更好，建议使用如下格式：
-                    # text = f"USER: <image>\nIs this a {cls}? Answer yes or no.\nASSISTANT:"
-                    # 但为了兼容你原有的简单格式：
-                    question = f"USER: <image>\nIs this a {cls}? Answer yes or no.\nASSISTANT:"
-                    
-                    inputs = self.processor(text=question, images=img, return_tensors="pt").to(self.device)
-                    
-                    # 关键修改：不要用 generate，用 forward 获取 logits
-                    outputs = self.model(**inputs)
-                    
-                    # 获取最后一个 token 的输出 logits (预测下一个词)
-                    # shape: [batch_size, seq_len, vocab_size] -> 取最后一个 token
-                    next_token_logits = outputs.logits[0, -1, :]
-                    
-                    # 提取 "Yes" 这个词的 logit 分数
-                    score = next_token_logits[yes_token_id]
-                    
-                    cls_scores.append(score.float())
+                # 处理输入
+                inputs = self.processor(text=prompt, images=img, return_tensors="pt").to(self.device)
                 
-                all_logits.append(torch.stack(cls_scores, dim=0))
+                # 前向传播
+                outputs = self.model(**inputs)
                 
-        logits = torch.stack(all_logits, dim=0)
-        return logits
+                # 获取最后一个 Token 的 Logits (即模型即将生成的那个字)
+                # shape: [batch_size, seq_len, vocab_size] -> [vocab_size]
+                next_token_logits = outputs.logits[0, -1, :]
+                
+                # 只提取 A, B, C... 对应的 logits
+                # selected_logits shape: [num_classes]
+                selected_logits = next_token_logits[option_token_ids]
+                
+                # 存入列表 (转存 CPU 节省显存)
+                all_logits.append(selected_logits.float().cpu())
+
+        # 堆叠结果
+        return torch.stack(all_logits, dim=0)
 
 
 class QwenVLClassifier(nn.Module):
@@ -154,7 +163,7 @@ class QwenVLClassifier(nn.Module):
         super().__init__()
         self.device = device
         self.model = Qwen3VLForConditionalGeneration.from_pretrained(
-            LOCAL_DIR + "models/Qwen3-VL-4B-Instruct",
+            LOCAL_DIR + "models/Qwen3-VL-2B-Instruct",
             dtype=torch.bfloat16,
             # attn_implementation="flash_attention_2",
             device_map="auto",
@@ -177,67 +186,66 @@ class QwenVLClassifier(nn.Module):
     
     def predict_logits(self, images):
         """
-        images: list of PIL.Image
-        returns: tensor [num_images, num_classes]
+        使用 Multiple Choice (A/B/C...) 策略获取 Logits
         """
         self.model.eval()
         all_logits = []
+
+        # 1. 准备选项 A, B...
+        options = [chr(ord('A') + i) for i in range(len(self.class_names))]
         
-        # 1. 获取 "Yes" 的 Token ID
-        # Qwen 的 Tokenizer 一般不需要前导空格，因为它通过特殊 token 分割
-        # 我们获取 "Yes" 的 ID。如果不确定大小写，可以同时获取 "Yes" 和 "yes"
+        # 2. 获取 Token IDs
         tokenizer = self.processor.tokenizer
-        yes_token_id = tokenizer.encode("Yes", add_special_tokens=False)[0]
+        option_token_ids = []
+        for opt in options:
+            # Qwen Tokenizer 比较特别，建议直接编码 "A"
+            # 注意：add_special_tokens=False
+            token_id = tokenizer.encode(opt, add_special_tokens=False)[0] 
+            option_token_ids.append(token_id)
+        
+        # 3. 构建选项字符串
+        options_str = " ".join([f"({opt}) {name}" for opt, name in zip(options, self.class_names)])
+        
+        # 4. 构造 Prompt 内容
+        question_text = f"Select the correct category for this image from the following options: {options_str}.\nAnswer with the option letter only."
         
         with torch.no_grad():
             for img in images:
-                cls_scores = []
-                for cls in self.class_names:
-                    # 2. 构建标准的 Chat Prompt
-                    # Qwen-VL-Instruct 必须知道它是 "Assistant"，否则可能只是续写文本而不是回答
-                    messages = [
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "image"}, # Qwen2-VL/3-VL processor 会自动处理这个占位符
-                                {"type": "text", "text": f"Is this a {cls}? Answer yes or no."}
-                            ]
-                        }
-                    ]
-                    
-                    # 使用 apply_chat_template 生成带特殊 token 的文本
-                    # 结果类似: "<|im_start|>user\n<image>\nIs this...<|im_end|>\n<|im_start|>assistant\n"
-                    text_prompt = self.processor.apply_chat_template(
-                        messages, tokenize=False, add_generation_prompt=True
-                    )
-                    
-                    # 3. 处理输入
-                    # 注意：Qwen 的 processor 需要 text 列表和 images
-                    inputs = self.processor(
-                        text=[text_prompt], 
-                        images=img, 
-                        return_tensors="pt"
-                    ).to(self.model.device)
-                    
-                    # 4. 前向传播
-                    outputs = self.model(**inputs)
-                    
-                    # 5. 提取最后一个 Token (即 Assistant 即将生成的第一个词) 的 Logits
-                    # shape: [batch_size, seq_len, vocab_size]
-                    next_token_logits = outputs.logits[0, -1, :]
-                    
-                    # 获取 "Yes" 对应的分数
-                    score = next_token_logits[yes_token_id]
-                    cls_scores.append(score.float())
+                # Qwen 标准 Chat 格式
+                messages = [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "image"},
+                            {"type": "text", "text": question_text}
+                        ]
+                    }
+                ]
                 
-                # 堆叠单张图片的所有类别分数
-                all_logits.append(torch.stack(cls_scores, dim=0))
-
-                # 清理显存
-                torch.cuda.empty_cache()
+                # 生成带模版的 prompt (<|im_start|>user...)
+                text_prompt = self.processor.apply_chat_template(
+                    messages, tokenize=False, add_generation_prompt=True
+                )
+                
+                # 处理输入
+                inputs = self.processor(
+                    text=[text_prompt], 
+                    images=img, 
+                    return_tensors="pt"
+                ).to(self.model.device)
+                
+                # 前向传播
+                outputs = self.model(**inputs)
+                
+                # 提取最后一个 Token 的 Logits
+                next_token_logits = outputs.logits[0, -1, :]
+                
+                # 提取 A, B... 的分数
+                selected_logits = next_token_logits[option_token_ids]
+                
+                all_logits.append(selected_logits.float().cpu())
         
-        logits = torch.stack(all_logits, dim=0)
-        return logits
+        return torch.stack(all_logits, dim=0)
     
 
 def load_images_from_folder(folder_path):
