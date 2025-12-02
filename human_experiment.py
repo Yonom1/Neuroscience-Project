@@ -11,8 +11,17 @@ st.set_page_config(page_title="猫咪分类工具", layout="centered")
 
 # --- 初始化状态 ---
 if "image_list" not in st.session_state:
-    # 这里配置你的路径
-    base_dir = "data/dataset/test"
+    # 定义所有需要测试的数据集来源
+    dataset_sources = [("Original", "dataset/test")]
+    
+    # 添加对比度变体 (1-5)
+    for i in range(1, 6):
+        dataset_sources.append((f"Contrast_L{i}", f"dataset_variants/contrast_level_{i}/test"))
+        
+    # 添加噪声变体 (1-6)
+    for i in range(1, 7):
+        dataset_sources.append((f"Noise_L{i}", f"dataset_variants/noise_level_{i}/test"))
+
     categories = {
         "persian_cat": 0,
         "siamese_cat": 1,
@@ -20,16 +29,21 @@ if "image_list" not in st.session_state:
 
     img_list = []
     # 加载图片逻辑
-    for cat, label in categories.items():
-        p = os.path.join(base_dir, cat)
-        if os.path.exists(p):
-            files = [
-                os.path.join(p, f)
-                for f in os.listdir(p)
-                if f.lower().endswith((".jpg", ".png", ".jpeg"))
-            ]
-            for f in files:
-                img_list.append((f, label))
+    for condition, base_dir in dataset_sources:
+        if not os.path.exists(base_dir):
+            continue
+            
+        for cat, label in categories.items():
+            p = os.path.join(base_dir, cat)
+            if os.path.exists(p):
+                files = [
+                    os.path.join(p, f)
+                    for f in os.listdir(p)
+                    if f.lower().endswith((".jpg", ".png", ".jpeg"))
+                ]
+                for f in files:
+                    # 保存 (路径, 标签, 条件)
+                    img_list.append((f, label, condition))
 
     # 去重并打乱
     img_list = list(set(img_list))
@@ -58,7 +72,7 @@ if st.session_state.idx >= len(st.session_state.image_list):
     st.stop()
 
 # --- 获取当前图片 ---
-current_img_path, current_true_label = st.session_state.image_list[st.session_state.idx]
+current_img_path, current_true_label, current_condition = st.session_state.image_list[st.session_state.idx]
 
 st.title(f"图片 {st.session_state.idx + 1} / {len(st.session_state.image_list)}")
 
@@ -103,8 +117,19 @@ col1, col2 = st.columns(2)
 def next_step(pred):
     # 记录结果
     st.session_state.results.append(
-        {"Image": current_img_path, "True": current_true_label, "Pred": pred}
+        {
+            "Image": current_img_path, 
+            "True": current_true_label, 
+            "Pred": pred, 
+            "Condition": current_condition
+        }
     )
+    
+    # 实时保存 (每做完一个就追加写入/覆盖写入)
+    # 为了避免频繁IO影响性能，也可以每10个存一次，但这里数据量不大，实时存最安全
+    temp_df = pd.DataFrame(st.session_state.results)
+    temp_df.to_csv("classification_results_web.csv", index=False)
+    
     # 切换下一张
     st.session_state.idx += 1
     # 设置下一张图片为“需要显示”，这样下次运行脚本开头时会进入 show_image=True 的逻辑
