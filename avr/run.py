@@ -153,14 +153,16 @@ if __name__ == '__main__':
     for i in range(1, 6):
         test_datasets_list.append(f'dataset_variants/contrast_level_{i}')
         
-    # 添加噪声变体 (5个档位)
-    for i in range(1, 6):
+    # 添加噪声变体 (6个档位)
+    for i in range(1, 7):
         test_datasets_list.append(f'dataset_variants/noise_level_{i}')
 
     # 定义要跑的三个模型
     models_to_test = ['alexnet', 'vgg16', 'resnet18']
     
-    log_file = "experiment_results.csv"
+    # 使用脚本所在目录来存放结果，避免路径错误
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    log_file = os.path.join(script_dir, "experiment_results.csv")
     
     # 初始化日志文件
     with open(log_file, "w", encoding='utf-8') as f:

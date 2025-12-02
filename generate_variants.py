@@ -20,9 +20,9 @@ OUTPUT_ROOT = './dataset_variants'
 # 例如：0.9, 0.7, 0.5, 0.3, 0.1
 CONTRAST_LEVELS = [0.9, 0.7, 0.5, 0.3, 0.1]
 
-# 噪声：0.0 是无噪声。我们设置5个档位，逐渐增加噪声。
-# 例如：0.05, 0.20, 0.35, 0.5, 0.75
-NOISE_LEVELS = [0.05, 0.20, 0.35, 0.5, 0.75]
+# 噪声：0.0 是无噪声。我们设置6个档位，逐渐增加噪声。
+# 例如：0.05, 0.20, 0.35, 0.5, 0.75, 1.0
+NOISE_LEVELS = [0.05, 0.20, 0.35, 0.5, 0.75, 1.0]
 
 # Eidolon 参数 (保持不变，如果需要的话)
 EIDOLON_PARAMS = {'reach': 8.0, 'coherence': 1.0, 'grain': 10.0}
@@ -202,22 +202,28 @@ def process_dataset():
                 
                 # 1. Contrast Levels (RGB)
                 for i, level in enumerate(CONTRAST_LEVELS):
-                    # 保持 RGB，不转灰度
-                    img_contrast = adjust_contrast(img, level)
-                    
                     # 文件夹命名: dataset_variants/contrast_level_1/train/class_name/
                     # level_1 对应 CONTRAST_LEVELS[0]
                     save_dir = os.path.join(OUTPUT_ROOT, f'contrast_level_{i+1}', subset, class_name)
                     save_path = os.path.join(save_dir, img_name)
+                    
+                    if os.path.exists(save_path):
+                        continue
+
+                    # 保持 RGB，不转灰度
+                    img_contrast = adjust_contrast(img, level)
                     save_img(img_contrast, save_path)
 
                 # 2. Noise Levels (RGB)
                 for i, width in enumerate(NOISE_LEVELS):
-                    # 保持 RGB，不转灰度，不降对比度，只加噪
-                    img_noise = apply_uniform_noise(img, -width, width, rng)
-                    
                     save_dir = os.path.join(OUTPUT_ROOT, f'noise_level_{i+1}', subset, class_name)
                     save_path = os.path.join(save_dir, img_name)
+                    
+                    if os.path.exists(save_path):
+                        continue
+
+                    # 保持 RGB，不转灰度，不降对比度，只加噪
+                    img_noise = apply_uniform_noise(img, -width, width, rng)
                     save_img(img_noise, save_path)
                 
                 # 3. Eidolon (Optional, keep separate if needed, or remove if not requested)
