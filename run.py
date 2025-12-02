@@ -192,16 +192,16 @@ if __name__ == '__main__':
     datasets_list = ['dataset'] 
     for i in range(1, 6):
         datasets_list.append(f'dataset_variants/contrast_level_{i}')
-    for i in range(1, 6):
+    for i in range(1, 7):
         datasets_list.append(f'dataset_variants/noise_level_{i}')
 
     # 定义模型
     models_to_test = [
         # 'resnet18', 
-        # 'vit_base', 
-        'blip', 
-        'llava', 
-        'qwen3-vl'
+        'vit_base', 
+        # 'blip', 
+        # 'llava', 
+        # 'qwen3-vl'
     ]
 
     log_file = "experiment_results_optimized.csv"
