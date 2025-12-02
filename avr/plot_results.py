@@ -2,9 +2,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import re
+import os
 
 # Read the CSV file
-df = pd.read_csv('experiment_results.csv')
+script_dir = os.path.dirname(os.path.abspath(__file__))
+csv_path = os.path.join(script_dir, 'experiment_results.csv')
+df = pd.read_csv(csv_path)
 
 # Calculate Accuracy
 df['Accuracy'] = (df['TP'] + df['TN']) / (df['TP'] + df['TN'] + df['FP'] + df['FN'])
@@ -20,14 +23,15 @@ contrast_map = {
     5: 0.1
 }
 
-# Noise: 0.0 (Original), 0.05, 0.20, 0.35, 0.5, 0.75
+# Noise: 0.0 (Original), 0.05, 0.20, 0.35, 0.5, 0.75, 1.0
 noise_map = {
     0: 0.0,
     1: 0.05,
     2: 0.20,
     3: 0.35,
     4: 0.5,
-    5: 0.75
+    5: 0.75,
+    6: 1.0
 }
 
 # Process the dataframe to separate Contrast and Noise experiments
@@ -80,5 +84,6 @@ axes[1].set_ylabel('Accuracy')
 axes[1].grid(True)
 
 plt.tight_layout()
-plt.savefig('accuracy_plot.png')
-print("Plot saved to accuracy_plot.png")
+save_path = os.path.join(script_dir, 'accuracy_plot.png')
+plt.savefig(save_path)
+print(f"Plot saved to {save_path}")
