@@ -1,4 +1,3 @@
-import glob
 import os
 import random
 import time
@@ -13,6 +12,7 @@ st.set_page_config(page_title="猫咪分类工具", layout="centered")
 if "image_list" not in st.session_state:
     # 这里配置你的路径
     base_dir = "data/dataset/test"
+    mark = base_dir.split("/")[-2]
     categories = {
         "persian_cat": 0,
         "siamese_cat": 1,
@@ -31,6 +31,8 @@ if "image_list" not in st.session_state:
             for f in files:
                 img_list.append((f, label))
 
+    print(f"共加载 {len(img_list)} 张图片用于测试。")
+
     # 去重并打乱
     img_list = list(set(img_list))
     random.shuffle(img_list)
@@ -47,7 +49,10 @@ if st.session_state.idx >= len(st.session_state.image_list):
     # 保存结果
     res_df = pd.DataFrame(st.session_state.results)
     if not res_df.empty:
-        csv_path = "classification_results_web.csv"
+        csv_path = "classification_results.csv"
+        if os.path.exists(csv_path):
+            # 如果文件存在，追加且不写入表头
+            res_df.to_csv(csv_path, mode="a", header=False, index=False)
         res_df.to_csv(csv_path, index=False)
         st.write(f"结果已保存至: `{csv_path}`")
 
@@ -55,6 +60,38 @@ if st.session_state.idx >= len(st.session_state.image_list):
         acc = (res_df["True"] == res_df["Pred"]).mean()
         st.metric("最终准确率", f"{acc:.2%}")
         st.dataframe(res_df)
+
+        summary = pd.read_csv(csv_path)
+        TN = ((summary["True"] == 0) & (summary["Pred"] == 0)).sum()
+        TP = ((summary["True"] == 1) & (summary["Pred"] == 1)).sum()
+        FN = ((summary["True"] == 1) & (summary["Pred"] == 0)).sum()
+        FP = ((summary["True"] == 0) & (summary["Pred"] == 1)).sum()
+        summary_df = pd.DataFrame(
+            [
+                {
+                    "Dataset": mark,
+                    "Model": "human",
+                    "TN": TN,
+                    "FP": FP,
+                    "FN": FN,
+                    "TP": TP,
+                }
+            ]
+        )
+
+        old_summary = (
+            pd.read_csv("summary_results.csv")
+            if os.path.exists("summary_results.csv")
+            else pd.DataFrame()
+        )
+
+        old_summary = pd.concat([old_summary, summary_df], ignore_index=True)
+        summary_path = "summary_results.csv"
+        if os.path.exists(summary_path):
+            old_summary.to_csv(summary_path, mode="a", header=False, index=False)
+        else:
+            old_summary.to_csv(summary_path, index=False)
+
     st.stop()
 
 # --- 获取当前图片 ---
@@ -82,7 +119,7 @@ if st.session_state.show_image:
         )
 
         # 2. 暂停 0.5 秒 (500ms)
-        time.sleep(0.5)
+        time.sleep(0.4)
 
         # 3. 立即用黑块覆盖图片
         image_placeholder.markdown(black_box_html, unsafe_allow_html=True)
