@@ -1,4 +1,16 @@
 Dataset,Model,TN,FP,FN,TP
+dataset,vit_base,55,0,0,38
+dataset_variants/contrast_level_1,vit_base,55,0,0,38
+dataset_variants/contrast_level_2,vit_base,55,0,0,38
+dataset_variants/contrast_level_3,vit_base,55,0,0,38
+dataset_variants/contrast_level_4,vit_base,55,0,0,38
+dataset_variants/contrast_level_5,vit_base,55,0,0,38
+dataset_variants/noise_level_1,vit_base,55,0,0,38
+dataset_variants/noise_level_2,vit_base,54,1,0,38
+dataset_variants/noise_level_3,vit_base,54,1,0,38
+dataset_variants/noise_level_4,vit_base,54,1,0,38
+dataset_variants/noise_level_5,vit_base,53,2,1,37
+dataset_variants/noise_level_6,vit_base,30,25,1,37
 dataset,blip,52,3,0,38
 dataset_variants/contrast_level_1,blip,53,2,0,38
 dataset_variants/contrast_level_2,blip,52,3,0,38
@@ -10,6 +22,7 @@ dataset_variants/noise_level_2,blip,50,5,0,38
 dataset_variants/noise_level_3,blip,47,8,0,38
 dataset_variants/noise_level_4,blip,47,8,0,38
 dataset_variants/noise_level_5,blip,43,12,1,37
+dataset_variants/noise_level_6,blip,41,14,2,36
 dataset,llava,44,11,0,38
 dataset_variants/contrast_level_1,llava,40,15,0,38
 dataset_variants/contrast_level_2,llava,45,10,0,38
@@ -21,6 +34,7 @@ dataset_variants/noise_level_2,llava,40,15,0,38
 dataset_variants/noise_level_3,llava,37,18,1,37
 dataset_variants/noise_level_4,llava,37,18,1,37
 dataset_variants/noise_level_5,llava,38,17,1,37
+dataset_variants/noise_level_6,llava,30,25,0,38
 dataset,qwen3-vl,54,1,0,38
 dataset_variants/contrast_level_1,qwen3-vl,54,1,0,38
 dataset_variants/contrast_level_2,qwen3-vl,54,1,0,38
@@ -32,3 +46,4 @@ dataset_variants/noise_level_2,qwen3-vl,54,1,0,38
 dataset_variants/noise_level_3,qwen3-vl,53,2,0,38
 dataset_variants/noise_level_4,qwen3-vl,53,2,0,38
 dataset_variants/noise_level_5,qwen3-vl,51,4,0,38
+dataset_variants/noise_level_6,qwen3-vl,39,16,1,37
