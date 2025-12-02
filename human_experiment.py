@@ -9,7 +9,7 @@ import streamlit.components.v1 as components
 # 设置页面
 st.set_page_config(page_title="猫咪分类工具", layout="centered")
 
-base_dir = "data/dataset_variants/contrast_level_1/test"
+base_dir = "data/dataset_variants/contrast_level_5/test"
 mark = base_dir.split("/")[-2]
 # --- 初始化状态 ---
 if "image_list" not in st.session_state:
@@ -33,8 +33,6 @@ if "image_list" not in st.session_state:
             for f in files:
                 img_list.append((f, label))
 
-    img_list = img_list[:5]
-
     print(f"共加载 {len(img_list)} 张图片用于测试。")
 
     # 去重并打乱
@@ -54,9 +52,6 @@ if st.session_state.idx >= len(st.session_state.image_list):
     res_df = pd.DataFrame(st.session_state.results)
     if not res_df.empty:
         csv_path = "classification_results.csv"
-        if os.path.exists(csv_path):
-            # 如果文件存在，追加且不写入表头
-            res_df.to_csv(csv_path, mode="a", header=False, index=False)
         res_df.to_csv(csv_path, index=False)
         st.write(f"结果已保存至: `{csv_path}`")
 
@@ -83,6 +78,8 @@ if st.session_state.idx >= len(st.session_state.image_list):
             ]
         )
 
+        os.remove(csv_path)
+
         old_summary = (
             pd.read_csv("summary_results.csv")
             if os.path.exists("summary_results.csv")
@@ -91,10 +88,7 @@ if st.session_state.idx >= len(st.session_state.image_list):
 
         old_summary = pd.concat([old_summary, summary_df], ignore_index=True)
         summary_path = "summary_results.csv"
-        if os.path.exists(summary_path):
-            old_summary.to_csv(summary_path, mode="a", header=False, index=False)
-        else:
-            old_summary.to_csv(summary_path, index=False)
+        old_summary.to_csv(summary_path, index=False)
 
     st.stop()
 

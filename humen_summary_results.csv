@@ -1,0 +1,7 @@
+Dataset,Model,TN,FP,FN,TP
+dataset,human,53,2,2,36
+noise_level_1,human,49,6,2,36
+noise_level_2,human,53,2,0,38
+noise_level_3,human,53,2,0,38
+noise_level_4,human,53,2,4,34
+noise_level_5,human,53,2,1,37
