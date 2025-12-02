@@ -1,7 +1,6 @@
 import os
 import shutil
 import random
-from pathlib import Path
 
 # ================= 配置区域 =================
 # 1. 定义源文件夹的名字 (WNID) 和你想要映射的目标类别名

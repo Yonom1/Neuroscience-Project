@@ -1,0 +1,15 @@
+[project]
+name = "neuroscience-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pandas>=2.3.3",
+    "regex>=2025.11.3",
+    "scikit-image>=0.25.2",
+    "scikit-learn>=1.7.2",
+    "seaborn>=0.13.2",
+    "streamlit>=1.51.0",
+    "streamlit-keyup>=0.3.0",
+]

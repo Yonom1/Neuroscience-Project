@@ -1,6 +1,5 @@
 import os
 import sys
-import shutil
 import numpy as np
 from skimage.io import imread, imsave
 from skimage.color import rgb2gray
