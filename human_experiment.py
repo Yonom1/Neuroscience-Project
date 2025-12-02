@@ -4,15 +4,17 @@ import time
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 # 设置页面
 st.set_page_config(page_title="猫咪分类工具", layout="centered")
 
+base_dir = "data/dataset_variants/contrast_level_1/test"
+mark = base_dir.split("/")[-2]
 # --- 初始化状态 ---
 if "image_list" not in st.session_state:
     # 这里配置你的路径
-    base_dir = "data/dataset/test"
-    mark = base_dir.split("/")[-2]
+
     categories = {
         "persian_cat": 0,
         "siamese_cat": 1,
@@ -30,6 +32,8 @@ if "image_list" not in st.session_state:
             ]
             for f in files:
                 img_list.append((f, label))
+
+    img_list = img_list[:5]
 
     print(f"共加载 {len(img_list)} 张图片用于测试。")
 
@@ -133,7 +137,7 @@ else:
     # 如果状态已经是“不显示”，直接显示黑块
     image_placeholder.markdown(black_box_html, unsafe_allow_html=True)
 
-st.write("### 请分类：")
+st.write("### 请分类 (支持键盘 ← / →)：")
 col1, col2 = st.columns(2)
 
 
@@ -157,3 +161,36 @@ with col2:
     if st.button("Siamese Cat (暹罗猫)", use_container_width=True):
         next_step(1)
         st.rerun()
+
+# --- 键盘监听支持 ---
+components.html(
+    """
+    <script>
+    const doc = window.parent.document;
+    if (!doc.hasAttachedKeyHandler) {
+        doc.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') {
+                const buttons = doc.querySelectorAll('button');
+                for (let i = 0; i < buttons.length; i++) {
+                    if (buttons[i].innerText.includes("Persian Cat")) {
+                        buttons[i].click();
+                        break;
+                    }
+                }
+            } else if (e.key === 'ArrowRight') {
+                const buttons = doc.querySelectorAll('button');
+                for (let i = 0; i < buttons.length; i++) {
+                    if (buttons[i].innerText.includes("Siamese Cat")) {
+                        buttons[i].click();
+                        break;
+                    }
+                }
+            }
+        });
+        doc.hasAttachedKeyHandler = true;
+    }
+    </script>
+    """,
+    height=0,
+    width=0,
+)
