@@ -39,7 +39,14 @@ data_transforms = {
     ]),
 }
 
-def get_dataloaders(data_dir):
+def get_dataloaders(data_dir, is_variant=False):
+    # 如果是变体数据集，只加载 test 集
+    if is_variant:
+        image_datasets = {'test': datasets.ImageFolder(os.path.join(data_dir, 'test'), data_transforms['test'])}
+        dataloaders = {'test': DataLoader(image_datasets['test'], batch_size=BATCH_SIZE, shuffle=False, num_workers=2)}
+        return dataloaders, None, None
+    
+    # 如果是原始数据集，加载所有
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])
                       for x in ['train', 'val', 'test']}
     dataloaders = {x: DataLoader(image_datasets[x], batch_size=BATCH_SIZE, shuffle=(x=='train'), num_workers=2)
@@ -150,19 +157,25 @@ if __name__ == '__main__':
     test_datasets_list = ['dataset'] # 原数据集
     
     # 添加对比度变体 (5个档位)
-    for i in range(1, 6):
-        test_datasets_list.append(f'dataset_variants/contrast_level_{i}')
+    # for i in range(1, 6):
+    #     test_datasets_list.append(f'dataset_variants/contrast_level_{i}')
         
-    # 添加噪声变体 (6个档位)
-    for i in range(1, 7):
-        test_datasets_list.append(f'dataset_variants/noise_level_{i}')
+    # # 添加噪声变体 (6个档位)
+    # for i in range(1, 7):
+    #     test_datasets_list.append(f'dataset_variants/noise_level_{i}')
+
+    for i in range (1, 5):
+        test_datasets_list.append(f'dataset_variants/jigsaw_level_{i}')
+
+    for i in range(1, 6):
+        test_datasets_list.append(f'dataset_variants/eidolon_level_{i}')
 
     # 定义要跑的三个模型
     models_to_test = ['alexnet', 'vgg16', 'resnet18']
     
     # 使用脚本所在目录来存放结果，避免路径错误
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    log_file = os.path.join(script_dir, "experiment_results.csv")
+    log_file = os.path.join(script_dir, "experiment_results2.csv")
     
     # 初始化日志文件
     with open(log_file, "w", encoding='utf-8') as f:
@@ -184,9 +197,9 @@ if __name__ == '__main__':
                 continue
             
             # 获取当前测试集的 dataloader (只需要 test 部分)
-            # 注意：这里我们重新调用 get_dataloaders 只是为了获取 test loader
-            # 实际上 train/val loader 在这里不会被用到
-            current_dataloaders, _, _ = get_dataloaders(data_dir)
+            # 区分原始数据集和变体数据集
+            is_variant = 'dataset_variants' in data_path
+            current_dataloaders, _, _ = get_dataloaders(data_dir, is_variant=is_variant)
             
             tn, fp, fn, tp = evaluate_model(trained_model, m, current_dataloaders['test'], data_path)
             
