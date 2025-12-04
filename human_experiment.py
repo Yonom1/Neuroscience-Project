@@ -9,6 +9,38 @@ import streamlit.components.v1 as components
 # 设置页面
 st.set_page_config(page_title="猫咪分类工具", layout="centered")
 
+# --- 键盘监听支持 (放在最前面以确保始终加载) ---
+components.html(
+    """
+    <script>
+    const doc = window.parent.document;
+    
+    // 移除旧的监听器（防止重复或引用失效的 iframe 上下文）
+    if (window.parent._keyHandler) {
+        doc.removeEventListener('keydown', window.parent._keyHandler);
+    }
+
+    // 定义新的监听器
+    window.parent._keyHandler = function(e) {
+        if (e.key === 'ArrowLeft') {
+            const buttons = Array.from(doc.querySelectorAll('button'));
+            const btn = buttons.find(b => b.innerText.includes("Persian Cat"));
+            if (btn) btn.click();
+        } else if (e.key === 'ArrowRight') {
+            const buttons = Array.from(doc.querySelectorAll('button'));
+            const btn = buttons.find(b => b.innerText.includes("Siamese Cat"));
+            if (btn) btn.click();
+        }
+    };
+
+    // 添加监听器
+    doc.addEventListener('keydown', window.parent._keyHandler);
+    </script>
+    """,
+    height=0,
+    width=0,
+)
+
 base_dir = "data/dataset_variants/contrast_level_5/test"
 mark = base_dir.split("/")[-2]
 # --- 初始化状态 ---
@@ -106,6 +138,14 @@ if st.session_state.idx >= len(st.session_state.image_list):
 
     st.stop()
 
+# --- 休息逻辑 ---
+if st.session_state.get("needs_rest", False):
+    st.info(f"已经完成了 {st.session_state.idx} 张图片，休息一下吧！")
+    if st.button("继续测试"):
+        st.session_state.needs_rest = False
+        st.rerun()
+    st.stop()
+
 # --- 获取当前图片 ---
 current_img_path, current_true_label, current_condition = st.session_state.image_list[st.session_state.idx]
 
@@ -169,6 +209,10 @@ def next_step(pred):
     st.session_state.idx += 1
     # 设置下一张图片为“需要显示”，这样下次运行脚本开头时会进入 show_image=True 的逻辑
     st.session_state.show_image = True
+    
+    # 触发休息
+    if st.session_state.idx > 0 and st.session_state.idx % 50 == 0:
+        st.session_state.needs_rest = True
 
 
 with col1:
@@ -180,36 +224,3 @@ with col2:
     if st.button("Siamese Cat (暹罗猫)", use_container_width=True):
         next_step(1)
         st.rerun()
-
-# --- 键盘监听支持 ---
-components.html(
-    """
-    <script>
-    const doc = window.parent.document;
-    if (!doc.hasAttachedKeyHandler) {
-        doc.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft') {
-                const buttons = doc.querySelectorAll('button');
-                for (let i = 0; i < buttons.length; i++) {
-                    if (buttons[i].innerText.includes("Persian Cat")) {
-                        buttons[i].click();
-                        break;
-                    }
-                }
-            } else if (e.key === 'ArrowRight') {
-                const buttons = doc.querySelectorAll('button');
-                for (let i = 0; i < buttons.length; i++) {
-                    if (buttons[i].innerText.includes("Siamese Cat")) {
-                        buttons[i].click();
-                        break;
-                    }
-                }
-            }
-        });
-        doc.hasAttachedKeyHandler = true;
-    }
-    </script>
-    """,
-    height=0,
-    width=0,
-)

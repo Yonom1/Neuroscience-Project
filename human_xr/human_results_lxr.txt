@@ -1,0 +1,14 @@
+Condition            | Accuracy   | Count     
+----------------------------------------------
+Contrast_L1          | 95.70%    | 93        
+Contrast_L2          | 97.85%    | 93        
+Contrast_L3          | 95.70%    | 93        
+Contrast_L4          | 97.85%    | 93        
+Contrast_L5          | 95.70%    | 93        
+Noise_L1             | 96.77%    | 93        
+Noise_L2             | 93.55%    | 93        
+Noise_L3             | 94.62%    | 93        
+Noise_L4             | 95.70%    | 93        
+Noise_L5             | 94.62%    | 93        
+Noise_L6             | 95.70%    | 93        
+Original             | 96.77%    | 93
