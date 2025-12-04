@@ -19,7 +19,7 @@ TARGET_IMAGES = [
 OUTPUT_DIR = r'E:\南京大学\课程\大三上学期\NS\project\FurtherExploration\noise_samples'
 
 # 噪声参数
-NOISE_LEVEL = 0.35
+NOISE_LEVEL = 0.75
 NUM_SAMPLES = 50
 
 # ================= 图像处理函数 =================
