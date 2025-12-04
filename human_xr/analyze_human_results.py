@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 def calculate_accuracy():
-    csv_path = "classification_results_web.csv"
+    csv_path = "human_xr/classification_results_web_v2.csv"
     
     if not os.path.exists(csv_path):
         print(f"Error: {csv_path} not found.")
