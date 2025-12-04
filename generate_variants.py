@@ -24,10 +24,6 @@ CONTRAST_LEVELS = [0.9, 0.7, 0.5, 0.3, 0.1]
 # 例如：0.05, 0.20, 0.35, 0.5, 0.75, 1.0
 NOISE_LEVELS = [0.05, 0.20, 0.35, 0.5, 0.75, 1.0]
 
-# Eidolon 参数 (保持不变，如果需要的话)
-EIDOLON_PARAMS = {'reach': 8.0, 'coherence': 1.0, 'grain': 10.0}
-
-
 # ================= Eidolon 设置 =================
 # 将 Eidolon 库加入路径
 sys.path.append(os.path.abspath('./Eidolon'))

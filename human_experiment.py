@@ -48,13 +48,21 @@ if "image_list" not in st.session_state:
     # 定义所有需要测试的数据集来源
     dataset_sources = [("Original", "dataset/test")]
     
-    # 添加对比度变体 (1-5)
-    for i in range(1, 6):
-        dataset_sources.append((f"Contrast_L{i}", f"dataset_variants/contrast_level_{i}/test"))
+    # # 添加对比度变体 (1-5)
+    # for i in range(1, 6):
+    #     dataset_sources.append((f"Contrast_L{i}", f"dataset_variants/contrast_level_{i}/test"))
         
-    # 添加噪声变体 (1-6)
-    for i in range(1, 7):
-        dataset_sources.append((f"Noise_L{i}", f"dataset_variants/noise_level_{i}/test"))
+    # # 添加噪声变体 (1-6)
+    # for i in range(1, 7):
+    #     dataset_sources.append((f"Noise_L{i}", f"dataset_variants/noise_level_{i}/test"))
+
+    # 添加拼图变体 (1-4)
+    for i in range(1, 5):
+        dataset_sources.append((f"Jigsaw_L{i}", f"dataset_variants/jigsaw_level_{i}/test"))
+
+    # 添加 Eidolon 变体 (1-5)
+    for i in range(1, 6):
+        dataset_sources.append((f"Eidolon_L{i}", f"dataset_variants/eidolon_level_{i}/test"))
 
     categories = {
         "persian_cat": 0,
@@ -171,7 +179,7 @@ if st.session_state.show_image:
         )
 
         # 2. 暂停 0.5 秒 (500ms)
-        time.sleep(0.4)
+        time.sleep(1)
 
         # 3. 立即用黑块覆盖图片
         image_placeholder.markdown(black_box_html, unsafe_allow_html=True)
