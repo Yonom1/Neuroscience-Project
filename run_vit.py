@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 # 引入之前定义的模型类
 # 确保 src/vit_models.py 存在，或者将之前的类定义粘贴到同一个文件中
-from src.vit_models import ViTClassifier, BLIPClassifier, LLaVAClassifier, QwenVLClassifier, load_images_from_folder
+from utils.vit_models import ViTClassifier, BLIPClassifier, LLaVAClassifier, QwenVLClassifier, load_images_from_folder
 
 # =================配置区域=================
 BATCH_SIZE_CNN = 32     # CNN 和 ViT 的批大小
