@@ -213,20 +213,20 @@ if __name__ == '__main__':
 
     test_datasets_list = ['dataset'] 
     
-    # for i in range(1, 6): 
-    #     test_datasets_list.append(f'dataset_variants/contrast_level_{i}')
-    # for i in range(1, 7): 
-    #     test_datasets_list.append(f'dataset_variants/noise_level_{i}')
-    # for i in range(1, 5): 
-    #     test_datasets_list.append(f'dataset_variants/jigsaw_level_{i}')
-    # for i in range(1, 6): 
-    #     test_datasets_list.append(f'dataset_variants/eidolon_level_{i}')
+    for i in range(1, 6): 
+        test_datasets_list.append(f'dataset_variants/contrast_level_{i}')
+    for i in range(1, 7): 
+        test_datasets_list.append(f'dataset_variants/noise_level_{i}')
+    for i in range(1, 5): 
+        test_datasets_list.append(f'dataset_variants/jigsaw_level_{i}')
+    for i in range(1, 6): 
+        test_datasets_list.append(f'dataset_variants/eidolon_level_{i}')
     test_datasets_list.append('dataset_variants/noise_level_6')
 
     models_to_test = [
-        # 'alexnet', 
-        # 'vgg16', 
-        # 'resnet18', 
+        'alexnet', 
+        'vgg16', 
+        'resnet18', 
         'vit_base',
         'blip',
         'llava',

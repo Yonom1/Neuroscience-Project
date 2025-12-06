@@ -24,11 +24,11 @@ CONTRAST_LEVELS = [0.9, 0.7, 0.5, 0.3, 0.1]
 NOISE_LEVELS = [0.05, 0.20, 0.35, 0.5, 0.75, 1.0]
 
 EIDOLON_LEVELS = [
-    {'reach': 2.0, 'coherence': 1.0, 'grain': 10.0},  # Level 1
-    {'reach': 4.0, 'coherence': 1.0, 'grain': 10.0},  # Level 2
-    {'reach': 8.0, 'coherence': 1.0, 'grain': 10.0},  # Level 3
-    {'reach': 16.0, 'coherence': 1.0, 'grain': 10.0}, # Level 4
-    {'reach': 32.0, 'coherence': 1.0, 'grain': 10.0}, # Level 5
+    {'reach': 2.0, 'coherence': 1.0, 'grain': 10.0}, 
+    {'reach': 4.0, 'coherence': 1.0, 'grain': 10.0}, 
+    {'reach': 8.0, 'coherence': 1.0, 'grain': 10.0}, 
+    {'reach': 16.0, 'coherence': 1.0, 'grain': 10.0},
+    {'reach': 32.0, 'coherence': 1.0, 'grain': 10.0},
 ]
 
 JIGSAW_LEVELS = [2, 4, 8, 16]
