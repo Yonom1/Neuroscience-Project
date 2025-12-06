@@ -6,21 +6,17 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 设置页面
 st.set_page_config(page_title="猫咪分类工具", layout="centered")
 
-# --- 键盘监听支持 (放在最前面以确保始终加载) ---
 components.html(
     """
     <script>
     const doc = window.parent.document;
     
-    // 移除旧的监听器（防止重复或引用失效的 iframe 上下文）
     if (window.parent._keyHandler) {
         doc.removeEventListener('keydown', window.parent._keyHandler);
     }
 
-    // 定义新的监听器
     window.parent._keyHandler = function(e) {
         if (e.key === 'ArrowLeft') {
             const buttons = Array.from(doc.querySelectorAll('button'));
@@ -33,7 +29,6 @@ components.html(
         }
     };
 
-    // 添加监听器
     doc.addEventListener('keydown', window.parent._keyHandler);
     </script>
     """,
@@ -41,28 +36,23 @@ components.html(
     width=0,
 )
 
-base_dir = "data/dataset_variants/contrast_level_5/test"
-mark = base_dir.split("/")[-2]
-# --- 初始化状态 ---
+# 获取项目根目录
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 if "image_list" not in st.session_state:
-    # 定义所有需要测试的数据集来源
-    dataset_sources = [("Original", "dataset/test")]
+    dataset_sources = [("Original", os.path.join(PROJECT_ROOT, "dataset", "test"))]
     
-    # # 添加对比度变体 (1-5)
-    # for i in range(1, 6):
-    #     dataset_sources.append((f"Contrast_L{i}", f"dataset_variants/contrast_level_{i}/test"))
-        
-    # # 添加噪声变体 (1-6)
-    # for i in range(1, 7):
-    #     dataset_sources.append((f"Noise_L{i}", f"dataset_variants/noise_level_{i}/test"))
-
-    # 添加拼图变体 (1-4)
-    for i in range(1, 5):
-        dataset_sources.append((f"Jigsaw_L{i}", f"dataset_variants/jigsaw_level_{i}/test"))
-
-    # 添加 Eidolon 变体 (1-5)
     for i in range(1, 6):
-        dataset_sources.append((f"Eidolon_L{i}", f"dataset_variants/eidolon_level_{i}/test"))
+        dataset_sources.append((f"Contrast_L{i}", os.path.join(PROJECT_ROOT, "dataset_variants", f"contrast_level_{i}", "test")))
+        
+    for i in range(1, 7):
+        dataset_sources.append((f"Noise_L{i}", os.path.join(PROJECT_ROOT, "dataset_variants", f"noise_level_{i}", "test")))
+
+    for i in range(1, 5):
+        dataset_sources.append((f"Jigsaw_L{i}", os.path.join(PROJECT_ROOT, "dataset_variants", f"jigsaw_level_{i}", "test")))
+
+    for i in range(1, 6):
+        dataset_sources.append((f"Eidolon_L{i}", os.path.join(PROJECT_ROOT, "dataset_variants", f"eidolon_level_{i}", "test")))
 
     categories = {
         "persian_cat": 0,
@@ -70,7 +60,6 @@ if "image_list" not in st.session_state:
     }
 
     img_list = []
-    # 加载图片逻辑
     for condition, base_dir in dataset_sources:
         if not os.path.exists(base_dir):
             continue
@@ -84,34 +73,29 @@ if "image_list" not in st.session_state:
                     if f.lower().endswith((".jpg", ".png", ".jpeg"))
                 ]
                 for f in files:
-                    # 保存 (路径, 标签, 条件)
                     img_list.append((f, label, condition))
 
-    print(f"共加载 {len(img_list)} 张图片用于测试。")
+    print(f"totally loaded {len(img_list)} images for testing.")
 
-    # 去重并打乱
     img_list = list(set(img_list))
     random.shuffle(img_list)
 
     st.session_state.image_list = img_list
     st.session_state.idx = 0
     st.session_state.results = []
-    st.session_state.show_image = True  # 控制图片是否显示
+    st.session_state.show_image = True
 
-# --- 结束逻辑 ---
 if st.session_state.idx >= len(st.session_state.image_list):
-    st.success("测试结束！")
+    st.success("Testing completed! Thank you for your participation.")
 
-    # 保存结果
     res_df = pd.DataFrame(st.session_state.results)
     if not res_df.empty:
         csv_path = "classification_results.csv"
         res_df.to_csv(csv_path, index=False)
-        st.write(f"结果已保存至: `{csv_path}`")
+        st.write(f"Results saved to: `{csv_path}`")
 
-        # 简单计算准确率
         acc = (res_df["True"] == res_df["Pred"]).mean()
-        st.metric("最终准确率", f"{acc:.2%}")
+        st.metric("Final Accuracy", f"{acc:.2%}")
         st.dataframe(res_df)
 
         summary = pd.read_csv(csv_path)
@@ -146,51 +130,42 @@ if st.session_state.idx >= len(st.session_state.image_list):
 
     st.stop()
 
-# --- 休息逻辑 ---
 if st.session_state.get("needs_rest", False):
-    st.info(f"已经完成了 {st.session_state.idx} 张图片，休息一下吧！")
-    if st.button("继续测试"):
+    st.info(f"Already completed {st.session_state.idx} images, take a break!")
+    if st.button("Continue Testing"):
         st.session_state.needs_rest = False
         st.rerun()
     st.stop()
 
-# --- 获取当前图片 ---
 current_img_path, current_true_label, current_condition = st.session_state.image_list[st.session_state.idx]
 
 st.title(f"图片 {st.session_state.idx + 1} / {len(st.session_state.image_list)}")
 
-# 定义黑色遮挡块的 HTML
 black_box_html = """
     <div style="width:400px;height:400px;background-color:black;color:white;text-align:center;line-height:400px;margin:auto;">
     (图片已隐藏，请凭记忆分类)
     </div>
 """
 
-# --- 核心逻辑：自动 500ms 隐藏 ---
-# 使用 st.empty() 创建一个可变的容器
+
 image_placeholder = st.empty()
 
 if st.session_state.show_image:
     try:
-        # 1. 先显示图片
-        # use_container_width=False 配合 width=400 保持尺寸一致
+
         image_placeholder.image(
-            current_img_path, caption="请快速记忆特征...", width=400
+            current_img_path, caption="Please quickly memorize the features...", width=400
         )
 
-        # 2. 暂停 0.5 秒 (500ms)
         time.sleep(1)
 
-        # 3. 立即用黑块覆盖图片
         image_placeholder.markdown(black_box_html, unsafe_allow_html=True)
 
-        # 4. 更新状态，这样如果用户随便点哪里触发刷新，图片也不会重新显示出来
         st.session_state.show_image = False
 
     except Exception as e:
-        image_placeholder.error(f"无法加载: {current_img_path} ({e})")
+        image_placeholder.error(f"Failed to load: {current_img_path} ({e})")
 else:
-    # 如果状态已经是“不显示”，直接显示黑块
     image_placeholder.markdown(black_box_html, unsafe_allow_html=True)
 
 st.write("### 请分类 (支持键盘 ← / →)：")
@@ -198,7 +173,6 @@ col1, col2 = st.columns(2)
 
 
 def next_step(pred):
-    # 记录结果
     st.session_state.results.append(
         {
             "Image": current_img_path, 
@@ -208,17 +182,12 @@ def next_step(pred):
         }
     )
     
-    # 实时保存 (每做完一个就追加写入/覆盖写入)
-    # 为了避免频繁IO影响性能，也可以每10个存一次，但这里数据量不大，实时存最安全
     temp_df = pd.DataFrame(st.session_state.results)
     temp_df.to_csv("classification_results_web.csv", index=False)
     
-    # 切换下一张
     st.session_state.idx += 1
-    # 设置下一张图片为“需要显示”，这样下次运行脚本开头时会进入 show_image=True 的逻辑
     st.session_state.show_image = True
     
-    # 触发休息
     if st.session_state.idx > 0 and st.session_state.idx % 50 == 0:
         st.session_state.needs_rest = True
 

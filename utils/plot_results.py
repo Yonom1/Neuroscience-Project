@@ -4,7 +4,6 @@ import seaborn as sns
 import re
 import os
 
-# Read the CSV files
 script_dir = os.path.dirname(os.path.abspath(__file__))
 csv_path1 = os.path.join(script_dir, 'experiment_results.csv')
 csv_path2 = os.path.join(script_dir, 'experiment_results2.csv')
@@ -12,14 +11,10 @@ csv_path2 = os.path.join(script_dir, 'experiment_results2.csv')
 df1 = pd.read_csv(csv_path1)
 df2 = pd.read_csv(csv_path2)
 
-# Merge dataframes
 df = pd.concat([df1, df2], ignore_index=True)
 
-# Calculate Accuracy
 df['Accuracy'] = (df['TP'] + df['TN']) / (df['TP'] + df['TN'] + df['FP'] + df['FN'])
 
-# Define the hyperparameter values based on generate_variants.py
-# Contrast: 1.0 (Original), 0.9, 0.7, 0.5, 0.3, 0.1
 contrast_map = {
     0: 1.0,
     1: 0.9,
@@ -29,7 +24,6 @@ contrast_map = {
     5: 0.1
 }
 
-# Noise: 0.0 (Original), 0.05, 0.20, 0.35, 0.5, 0.75, 1.0
 noise_map = {
     0: 0.0,
     1: 0.05,
@@ -40,7 +34,6 @@ noise_map = {
     6: 1.0
 }
 
-# Jigsaw: 1 (Original), 2, 4, 8, 16, 32
 jigsaw_map = {
     0: 1,
     1: 2,
@@ -50,7 +43,6 @@ jigsaw_map = {
     5: 32
 }
 
-# Eidolon: 0 (Original), 1, 2, 3, 4, 5 (Levels)
 eidolon_map = {
     0: 0,
     1: 1,
@@ -60,7 +52,6 @@ eidolon_map = {
     5: 5
 }
 
-# Process the dataframe to separate Contrast and Noise experiments
 contrast_data = []
 noise_data = []
 jigsaw_data = []
@@ -72,14 +63,12 @@ for index, row in df.iterrows():
     accuracy = row['Accuracy']
     
     if dataset == 'dataset':
-        # Original dataset belongs to all (Level 0)
         contrast_data.append({'Model': model, 'Level': 0, 'Value': contrast_map[0], 'Accuracy': accuracy})
         noise_data.append({'Model': model, 'Level': 0, 'Value': noise_map[0], 'Accuracy': accuracy})
         jigsaw_data.append({'Model': model, 'Level': 0, 'Value': jigsaw_map[0], 'Accuracy': accuracy})
         eidolon_data.append({'Model': model, 'Level': 0, 'Value': eidolon_map[0], 'Accuracy': accuracy})
         
     elif 'contrast_level' in dataset:
-        # Extract level number
         match = re.search(r'contrast_level_(\d+)', dataset)
         if match:
             level = int(match.group(1))
@@ -109,10 +98,8 @@ df_noise = pd.DataFrame(noise_data)
 df_jigsaw = pd.DataFrame(jigsaw_data)
 df_eidolon = pd.DataFrame(eidolon_data)
 
-# Plotting
 fig, axes = plt.subplots(2, 2, figsize=(15, 12))
 
-# Plot 1: Accuracy vs Contrast Level (Value)
 if not df_contrast.empty:
     sns.lineplot(data=df_contrast, x='Value', y='Accuracy', hue='Model', marker='o', ax=axes[0, 0])
     axes[0, 0].set_title('Accuracy vs Contrast Level')
@@ -121,7 +108,6 @@ if not df_contrast.empty:
     axes[0, 0].invert_xaxis() 
     axes[0, 0].grid(True)
 
-# Plot 2: Accuracy vs Noise Level (Value)
 if not df_noise.empty:
     sns.lineplot(data=df_noise, x='Value', y='Accuracy', hue='Model', marker='o', ax=axes[0, 1])
     axes[0, 1].set_title('Accuracy vs Noise Level')
@@ -129,7 +115,6 @@ if not df_noise.empty:
     axes[0, 1].set_ylabel('Accuracy')
     axes[0, 1].grid(True)
 
-# Plot 3: Accuracy vs Jigsaw Level (Value)
 if not df_jigsaw.empty:
     sns.lineplot(data=df_jigsaw, x='Value', y='Accuracy', hue='Model', marker='o', ax=axes[1, 0])
     axes[1, 0].set_title('Accuracy vs Jigsaw Grid Size')
@@ -138,7 +123,6 @@ if not df_jigsaw.empty:
     axes[1, 0].set_xscale('log', base=2) # Log scale for grid size
     axes[1, 0].grid(True)
 
-# Plot 4: Accuracy vs Eidolon Level (Value)
 if not df_eidolon.empty:
     sns.lineplot(data=df_eidolon, x='Value', y='Accuracy', hue='Model', marker='o', ax=axes[1, 1])
     axes[1, 1].set_title('Accuracy vs Eidolon Distortion Level')

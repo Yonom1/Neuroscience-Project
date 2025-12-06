@@ -1,18 +1,14 @@
-# build_wild_test.py
 import os
 from icrawler.builtin import BingImageCrawler
 
-# 下载两类
 categories = {
     "persian_cat": "Persian cat",
     "siamese_cat": "Siamese cat"
 }
 
-# 每类下载数量
 num_images = 300
 
-# 保存根目录
-output_root = "./dataset/test"
+output_root = "./dataset/origin/test"
 
 def download_category(folder_name, keyword):
     save_dir = os.path.join(output_root, folder_name)
@@ -20,9 +16,9 @@ def download_category(folder_name, keyword):
 
     crawler = BingImageCrawler(storage={'root_dir': save_dir})
 
-    print(f"📌 开始下载：{keyword} → {save_dir}")
+    print(f"downloading：{keyword} → {save_dir}")
     crawler.crawl(keyword=keyword, max_num=num_images)
-    print(f"✔ 完成：{keyword}\n")
+    print(f"done：{keyword}\n")
 
 def main():
     os.makedirs(output_root, exist_ok=True)

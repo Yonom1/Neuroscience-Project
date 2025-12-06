@@ -10,21 +10,19 @@ import cv2
 import random
 from tempfile import mkstemp
 
-# 忽略一些警告
 warnings.filterwarnings("ignore")
 
-# ================= 配置 =================
-SOURCE_DIR = './dataset'
-DIRS_TO_PROCESS = ['test'] # 处理所有子集
-OUTPUT_ROOT = './dataset_variants'
 
-# 1. 对比度档位
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+SOURCE_DIR = os.path.join(PROJECT_ROOT, 'dataset')
+DIRS_TO_PROCESS = ['train', 'val', 'test']
+OUTPUT_ROOT = os.path.join(PROJECT_ROOT, 'dataset_variants')
+
 CONTRAST_LEVELS = [0.9, 0.7, 0.5, 0.3, 0.1]
 
-# 2. 噪声档位
 NOISE_LEVELS = [0.05, 0.20, 0.35, 0.5, 0.75, 1.0]
 
-# 3. Eidolon 档位
 EIDOLON_LEVELS = [
     {'reach': 2.0, 'coherence': 1.0, 'grain': 10.0},  # Level 1
     {'reach': 4.0, 'coherence': 1.0, 'grain': 10.0},  # Level 2
@@ -33,10 +31,9 @@ EIDOLON_LEVELS = [
     {'reach': 32.0, 'coherence': 1.0, 'grain': 10.0}, # Level 5
 ]
 
-# 4. Jigsaw 档位 (网格数量 N)
 JIGSAW_LEVELS = [2, 4, 8, 16]
 
-# ================= Eidolon 设置 =================
+# eidolon setup
 sys.path.append(os.path.abspath('./Eidolon'))
 
 try:
@@ -49,7 +46,6 @@ except ImportError:
     print("Eidolon library not found. Eidolon transformation will be skipped.")
     EIDOLON_AVAILABLE = False
 
-# ================= 图像处理函数 =================
 
 def imload_rgb(path):
     """Load and return an RGB image in the range [0, 1]."""
@@ -123,8 +119,7 @@ def jigsaw_scramble(img, grid_n):
             idx += 1
     return new_img
 
-# ================= Eidolon 辅助函数 =================
-
+# eidolon utils
 if EIDOLON_AVAILABLE:
     SZ = 256
     MIN_STD = (1 / np.sqrt(2))
@@ -166,7 +161,7 @@ if EIDOLON_AVAILABLE:
         res = np.asarray(Image.fromarray(eidolon, 'L')) / 255.0
         return np.stack((res,)*3, axis=-1)
 
-# ================= 主逻辑 =================
+# main logic
 
 def process_dataset():
     rng = np.random.RandomState(seed=42)

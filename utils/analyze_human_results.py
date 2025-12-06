@@ -18,21 +18,17 @@ def calculate_accuracy():
         print("CSV file is empty.")
         return
 
-    # 检查必要的列是否存在
     required_columns = ['True', 'Pred', 'Condition']
     if not all(col in df.columns for col in required_columns):
         print(f"Error: CSV must contain columns: {required_columns}")
         return
 
-    # 计算总体准确率
     total_accuracy = (df['True'] == df['Pred']).mean()
     print(f"Overall Accuracy: {total_accuracy:.2%}\n")
 
-    # 按 Condition 分组计算准确率
     print(f"{'Condition':<20} | {'Accuracy':<10} | {'Count':<10}")
     print("-" * 46)
     
-    # 获取所有唯一的 Condition 并排序
     conditions = sorted(df['Condition'].unique())
     
     results = []
@@ -50,10 +46,6 @@ def calculate_accuracy():
             'Count': count
         })
 
-    # 可选：保存分析结果到新文件
-    # result_df = pd.DataFrame(results)
-    # result_df.to_csv("human_accuracy_analysis.csv", index=False)
-    # print("\nAnalysis saved to human_accuracy_analysis.csv")
 
 if __name__ == "__main__":
     calculate_accuracy()
