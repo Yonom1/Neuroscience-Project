@@ -4,3 +4,4 @@ dataset_variants/
 object-recognition/
 
 *.csv
+*.png

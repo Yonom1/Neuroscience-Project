@@ -1,9 +1,11 @@
-import pandas as pd
 import os
 
-def calculate_accuracy():
+import pandas as pd
+
+
+def calculate_confusion_matrix():
     csv_path = "human_xr/classification_results_web_v2.csv"
-    
+
     if not os.path.exists(csv_path):
         print(f"Error: {csv_path} not found.")
         return
@@ -19,41 +21,54 @@ def calculate_accuracy():
         return
 
     # 检查必要的列是否存在
-    required_columns = ['True', 'Pred', 'Condition']
+    required_columns = ["True", "Pred", "Condition"]
     if not all(col in df.columns for col in required_columns):
         print(f"Error: CSV must contain columns: {required_columns}")
         return
 
-    # 计算总体准确率
-    total_accuracy = (df['True'] == df['Pred']).mean()
-    print(f"Overall Accuracy: {total_accuracy:.2%}\n")
+    # 按 Condition 分组计算混淆矩阵
+    print(
+        f"{'Condition':<25} | {'TN':<6} | {'FP':<6} | {'FN':<6} | {'TP':<6} | {'Accuracy':<10}"
+    )
+    print("-" * 80)
 
-    # 按 Condition 分组计算准确率
-    print(f"{'Condition':<20} | {'Accuracy':<10} | {'Count':<10}")
-    print("-" * 46)
-    
     # 获取所有唯一的 Condition 并排序
-    conditions = sorted(df['Condition'].unique())
-    
+    conditions = sorted(df["Condition"].unique())
+
     results = []
 
     for condition in conditions:
-        subset = df[df['Condition'] == condition]
-        accuracy = (subset['True'] == subset['Pred']).mean()
-        count = len(subset)
-        
-        print(f"{condition:<20} | {accuracy:.2%}    | {count:<10}")
-        
-        results.append({
-            'Condition': condition,
-            'Accuracy': accuracy,
-            'Count': count
-        })
+        subset = df[df["Condition"] == condition]
 
-    # 可选：保存分析结果到新文件
-    # result_df = pd.DataFrame(results)
-    # result_df.to_csv("human_accuracy_analysis.csv", index=False)
-    # print("\nAnalysis saved to human_accuracy_analysis.csv")
+        # 计算混淆矩阵: 0=Persian, 1=Siamese
+        TN = ((subset["True"] == 0) & (subset["Pred"] == 0)).sum()  # Persian correct
+        FP = ((subset["True"] == 0) & (subset["Pred"] == 1)).sum()  # Persian -> Siamese
+        FN = ((subset["True"] == 1) & (subset["Pred"] == 0)).sum()  # Siamese -> Persian
+        TP = ((subset["True"] == 1) & (subset["Pred"] == 1)).sum()  # Siamese correct
+
+        accuracy = (TN + TP) / (TN + FP + FN + TP) if (TN + FP + FN + TP) > 0 else 0
+
+        print(
+            f"{condition:<25} | {TN:<6} | {FP:<6} | {FN:<6} | {TP:<6} | {accuracy:.2%}"
+        )
+
+        results.append(
+            {
+                "Dataset": condition,
+                "Model": "human",
+                "TN": TN,
+                "FP": FP,
+                "FN": FN,
+                "TP": TP,
+            }
+        )
+
+    # 保存混淆矩阵结果到CSV文件
+    result_df = pd.DataFrame(results)
+    output_path = "human_xr/human_confusion_matrix.csv"
+    result_df.to_csv(output_path, index=False)
+    print(f"\nConfusion matrix saved to {output_path}")
+
 
 if __name__ == "__main__":
-    calculate_accuracy()
+    calculate_confusion_matrix()
