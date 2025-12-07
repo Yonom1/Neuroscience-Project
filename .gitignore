@@ -3,6 +3,7 @@ dataset/
 dataset_variants/
 object-recognition/
 
+*.log
 *.csv
 *.png
 output/
